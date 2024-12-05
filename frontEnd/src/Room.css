@@ -1,0 +1,56 @@
+.title:hover {
+  transform: scale(1.1); /* Enlarge the title */
+  background: linear-gradient(
+    45deg,
+    red,
+    orange,
+    yellow,
+    green,
+    blue,
+    indigo,
+    violet
+  ); /* Rainbow gradient */
+  -webkit-background-clip: text; /* Clip the background to the text */
+  color: transparent; /* Make the text transparent so the background shows through */
+  animation: rainbow 3s linear infinite; /* Apply rainbow animation */
+}
+
+.title {
+  text-align: center; /* Ensures the text is centered */
+  max-width: 80%; /* Adjust this value to control the width of the title */
+  margin: 0 auto; /* Centers the title within the container */
+  word-wrap: break-word; /* Ensures the title breaks properly on smaller screens */
+}
+
+.user {
+  color: rgb(100, 97, 97);
+  font-style: italic;
+  font-size: 30px;
+}
+
+@keyframes rainbow {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 100%;
+  }
+}
+/* Rainbow animation for a dynamic look */
+@keyframes rainbow {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 100%;
+  }
+}
+
+/* For the shape dropdown positioning */
+.dropdown-menu {
+  display: block;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
