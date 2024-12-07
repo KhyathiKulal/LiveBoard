@@ -21,33 +21,27 @@ header {
   margin-bottom: 20px;
 }
 
-#messages.scrollable {
-  overflow-y: auto;
-  max-height: 300px;
-  border: 1px solid #ddd; /* Subtle border for message area */
-  border-radius: 10px;
+.messages {
+  flex: 1;
   padding: 10px;
-  background: #ffffff; /* White background for messages */
+  border-bottom: 1px solid #ccc;
+  overflow-y: hidden;
+  position: relative;
 }
 
-.message {
-  margin-bottom: 12px;
-  padding: 12px;
-  background: #f4f4f4; /* Light gray for messages */
-  border-radius: 8px;
-  font-size: 14px;
-  color: #333333; /* Dark text */
-  max-width: 80%;
-  word-wrap: break-word;
-  display: flex;
-  flex-direction: column;
-  transition: background 0.2s ease; /* Smooth hover effect */
+.messages.scrollable {
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.messages::-webkit-scrollbar {
+  display: none;
 }
 
 .message.user {
   align-self: flex-end;
   margin-right: 10px;
-  background: #e0e0e0; /* Slightly darker gray for user messages */
+  background: #e0e0e0;
 }
 
 .message.bot {
@@ -56,14 +50,14 @@ header {
 }
 
 .message:hover {
-  background: #e8e8e8; /* Slightly darker gray on hover */
+  background: #e8e8e8;
 }
 
 .message-sender {
   font-weight: bold;
   font-size: 12px;
   margin-bottom: 4px;
-  color: #666666; /* Subtle text color for sender */
+  color: #666666;
 }
 
 .message-text {
@@ -74,7 +68,7 @@ form {
   display: flex;
   padding: 15px 10px 10px;
   border-top: 1px solid #ddd;
-  background: #f9f9f9; /* Matches container background */
+  background: #f9f9f9;
 }
 
 form input {
@@ -86,15 +80,15 @@ form input {
   font-size: 14px;
   background: #ffffff;
   color: #333333;
-  transition: border-color 0.3s ease; /* Smooth focus effect */
+  transition: border-color 0.3s ease;
 }
 
 form input:focus {
-  border-color: #333333; /* Darker border on focus */
+  border-color: #333333;
 }
 
 form button {
-  background: #333333; /* Dark gray button */
+  background: #333333;
   color: white;
   border: none;
   padding: 12px 18px;
@@ -102,20 +96,20 @@ form button {
   cursor: pointer;
   margin-left: 12px;
   font-size: 14px;
-  transition: background 0.3s ease, transform 0.2s ease; /* Smooth hover and click effects */
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 form button:hover {
-  background: #555555; /* Slightly lighter gray on hover */
+  background: #555555;
 }
 
 form button:active {
-  transform: scale(0.95); /* Slight shrinking on click */
+  transform: scale(0.95);
 }
 
 .loading-indicator {
   text-align: center;
-  color: #999999; /* Subtle gray for loading indicator */
+  color: #999999;
   font-style: italic;
   margin-top: 15px;
 }

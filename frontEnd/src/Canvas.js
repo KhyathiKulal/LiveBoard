@@ -31,7 +31,7 @@ const Canvas = ({
 
     // Sync full state when joining a room or when updates happen
     socket.on("canvasImage", (updatedElements) => {
-      setElements(updatedElements); // Replace the full state with synced data
+      setElements(updatedElements);
     });
 
     // Handle clear canvas event
@@ -161,9 +161,9 @@ const Canvas = ({
               Math.pow(ele.endY - ele.offsetY, 2)
           );
           const points = [
-            [ele.offsetX, ele.endY], // Bottom left
-            [ele.endX, ele.endY], // Bottom right
-            [ele.offsetX + (ele.endX - ele.offsetX) / 2, ele.offsetY], // Top center
+            [ele.offsetX, ele.endY],
+            [ele.endX, ele.endY],
+            [ele.offsetX + (ele.endX - ele.offsetX) / 2, ele.offsetY],
           ];
           roughCanvas.draw(
             generator.polygon(points, {

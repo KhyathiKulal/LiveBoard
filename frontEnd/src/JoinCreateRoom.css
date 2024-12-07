@@ -12,7 +12,7 @@
 }
 
 .title:hover {
-  transform: scale(1.1); /* Enlarge the title */
+  transform: scale(1.1);
   background: linear-gradient(
     45deg,
     red,
@@ -23,9 +23,9 @@
     indigo,
     violet
   ); /* Rainbow gradient */
-  -webkit-background-clip: text; /* Clip the background to the text */
-  color: transparent; /* Make the text transparent so the background shows through */
-  animation: rainbow 3s linear infinite; /* Apply rainbow animation */
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: rainbow 3s linear infinite;
 }
 
 @keyframes rainbow {
@@ -124,7 +124,7 @@ h2 {
   }
 
   .row {
-    flex-direction: column; /* Stack the columns vertically */
+    flex-direction: column;
   }
 
   .form-container {
@@ -146,14 +146,14 @@ h2 {
 
 @media (max-width: 576px) {
   .title {
-    font-size: 1.8rem; /* Smaller title on very small screens */
+    font-size: 1.8rem;
   }
 
   .form-container {
-    padding: 15px; /* Less padding on smaller screens */
+    padding: 15px;
   }
 
   .btn {
-    padding: 6px 12px; /* Smaller button on mobile */
+    padding: 6px 12px;
   }
 }

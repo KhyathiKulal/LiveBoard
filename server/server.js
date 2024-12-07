@@ -22,7 +22,6 @@ app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
-// Maintain a mapping of room IDs to their current drawings
 let roomDrawings = {};
 
 io.on("connection", (socket) => {
@@ -46,7 +45,6 @@ io.on("connection", (socket) => {
     socket.emit("canvasImage", roomDrawings[userRoom] || []);
   });
 
-  // // Handle chat message event
   // socket.on("chat message", (msg) => {
   //   console.log("Received message: ", msg); // Debug log to ensure the message is received
   //   io.to(userRoom).emit("chat message", msg);
@@ -77,7 +75,7 @@ io.on("connection", (socket) => {
 
   socket.on("redo-canvas", (redoneElement) => {
     if (redoneElement) {
-      roomDrawings[userRoom].push(redoneElement); // Add it to the room's drawing data
+      roomDrawings[userRoom].push(redoneElement);
       io.to(userRoom).emit("canvasImage", roomDrawings[userRoom]);
     }
   });
@@ -104,7 +102,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Serve on port
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () =>

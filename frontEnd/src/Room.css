@@ -1,5 +1,5 @@
 .title:hover {
-  transform: scale(1.1); /* Enlarge the title */
+  transform: scale(1.1);
   background: linear-gradient(
     45deg,
     red,
@@ -10,16 +10,16 @@
     indigo,
     violet
   ); /* Rainbow gradient */
-  -webkit-background-clip: text; /* Clip the background to the text */
-  color: transparent; /* Make the text transparent so the background shows through */
-  animation: rainbow 3s linear infinite; /* Apply rainbow animation */
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: rainbow 3s linear infinite;
 }
 
 .title {
-  text-align: center; /* Ensures the text is centered */
-  max-width: 80%; /* Adjust this value to control the width of the title */
-  margin: 0 auto; /* Centers the title within the container */
-  word-wrap: break-word; /* Ensures the title breaks properly on smaller screens */
+  text-align: center;
+  max-width: 80%;
+  margin: 0 auto;
+  word-wrap: break-word;
 }
 
 .user {
