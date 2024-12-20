@@ -29,19 +29,28 @@ const Canvas = ({
     context.lineWidth = 5;
     ctx.current = context;
 
-    // Sync full state when joining a room or when updates happen
     socket.on("canvasImage", (updatedElements) => {
       setElements(updatedElements);
     });
 
-    // Handle clear canvas event
     socket.on("clear-canvas", () => {
       setElements([]);
+    });
+
+    socket.on("sticky-note-move", (updatedNote) => {
+      setElements((prevElements) =>
+        prevElements.map((ele) =>
+          ele.id === updatedNote.id
+            ? { ...ele, x: updatedNote.x, y: updatedNote.y }
+            : ele
+        )
+      );
     });
 
     return () => {
       socket.off("canvasImage");
       socket.off("clear-canvas");
+      socket.off("sticky-note-move");
     };
   }, [socket]);
 
@@ -51,8 +60,39 @@ const Canvas = ({
     }
   }, [color]);
 
+  useEffect(() => {
+    socket.on("sticky-note-move", (updatedNote) => {
+      // Update the sticky note position locally
+      setElements((prevElements) =>
+        prevElements.map((ele) =>
+          ele.id === updatedNote.id
+            ? { ...ele, x: updatedNote.position.x, y: updatedNote.position.y }
+            : ele
+        )
+      );
+    });
+
+    return () => {
+      socket.off("sticky-note-move");
+    };
+  }, [socket]);
+
   const handleMouseDown = (e) => {
     const { offsetX, offsetY } = e.nativeEvent;
+
+    if (tool === "sticky-note") {
+      const newStickyNote = {
+        id: Date.now(),
+        x: offsetX,
+        y: offsetY,
+        text: "Double-click to edit",
+        type: "sticky-note",
+      };
+
+      setElements((prev) => [...prev, newStickyNote]);
+      socket.emit("drawing-update", newStickyNote);
+      return;
+    }
 
     const newElement = {
       id: Date.now(),
@@ -97,10 +137,43 @@ const Canvas = ({
     if (!currentElement) return;
 
     const finalizedElement = currentElement;
-    socket.emit("drawing-update", finalizedElement); // Emit to server
+    socket.emit("drawing-update", finalizedElement);
 
     setCurrentElement(null);
     setIsDrawing(false);
+  };
+
+  const handleDoubleClick = (e) => {
+    const { offsetX, offsetY } = e.nativeEvent;
+    const clickedNote = elements.find(
+      (ele) =>
+        ele.type === "sticky-note" &&
+        offsetX >= ele.x &&
+        offsetX <= ele.x + 150 &&
+        offsetY >= ele.y &&
+        offsetY <= ele.y + 100
+    );
+
+    if (clickedNote) {
+      const newText = prompt("Edit Sticky Note Text:", clickedNote.text);
+      if (newText !== null) {
+        const updatedElements = elements.map((ele) =>
+          ele.id === clickedNote.id ? { ...ele, text: newText } : ele
+        );
+        setElements(updatedElements);
+        socket.emit("drawing-update", updatedElements);
+      }
+    }
+  };
+
+  const handleStickyNoteDrag = (e, note) => {
+    const { offsetX, offsetY } = e.nativeEvent;
+
+    const updatedNote = { ...note, x: offsetX, y: offsetY };
+    setElements((prevElements) =>
+      prevElements.map((ele) => (ele.id === note.id ? updatedNote : ele))
+    );
+    socket.emit("sticky-note-move", updatedNote);
   };
 
   useLayoutEffect(() => {
@@ -115,7 +188,15 @@ const Canvas = ({
       );
 
       elements.forEach((ele) => {
-        if (ele.element === "rect") {
+        if (ele.type === "sticky-note") {
+          ctx.current.fillStyle = "#fff";
+          ctx.current.fillRect(ele.x, ele.y, 150, 100);
+          ctx.current.strokeStyle = "#000";
+          ctx.current.strokeRect(ele.x, ele.y, 150, 100);
+          ctx.current.fillStyle = "#000";
+          ctx.current.font = "14px Arial";
+          ctx.current.fillText(ele.text, ele.x + 10, ele.y + 25);
+        } else if (ele.element === "rect") {
           roughCanvas.draw(
             generator.rectangle(
               ele.offsetX,
@@ -178,13 +259,14 @@ const Canvas = ({
   }, [elements]);
 
   return (
-    <div className="canvas-container">
+    <div className="canvas-container" id="canvas-container">
       <div
         className="col-md-8 overflow-hidden border border-dark px-0 mx-auto mt-3"
         style={{ height: "500px" }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onDoubleClick={handleDoubleClick}
       >
         <canvas ref={canvasRef} />
       </div>

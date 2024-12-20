@@ -1,21 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
+import Draggable from "react-draggable";
+import html2canvas from "html2canvas"; // Import for downloading canvas with sticky notes
 import Canvas from "./Canvas";
 import Chat from "./Chat";
 import ChatWithAi from "./ChatWithAi";
 import "./style.css";
-import "./Room.css"; // Import new styles for rainbow heading and chat UI
+import "./Room.css";
 
 const Room = ({ userNo, user, socket, setUsers, setUserNo }) => {
   const canvasRef = useRef(null);
   const ctx = useRef(null);
   const [color, setColor] = useState("#000000");
   const [elements, setElements] = useState([]);
+  const [stickyNotes, setStickyNotes] = useState([]);
   const [history, setHistory] = useState([]);
   const [tool, setTool] = useState("pencil");
-  const [isChatVisible, setChatVisible] = useState(false); // State for chat visibility
-  const [isShapeDropdownVisible, setShapeDropdownVisible] = useState(false); // State for shape dropdown visibility
+  const [isChatVisible, setChatVisible] = useState(false);
+  const [isShapeDropdownVisible, setShapeDropdownVisible] = useState(false);
 
   useEffect(() => {
     socket.on("message", (data) => {
@@ -59,10 +62,23 @@ const Room = ({ userNo, user, socket, setUsers, setUserNo }) => {
       redoCanvasLocal(redoneElement);
     });
 
+    //sticky notes
+    socket.on("sticky-notes-update", (notes) => {
+      setStickyNotes(notes);
+    });
+
+    socket.on("sticky-note-position-update", ({ id, position }) => {
+      setStickyNotes((prevNotes) =>
+        prevNotes.map((note) => (note.id === id ? { ...note, position } : note))
+      );
+    });
+
     return () => {
       socket.off("clear-canvas");
       socket.off("undo-canvas");
       socket.off("redo-canvas");
+      socket.off("sticky-notes-update");
+      socket.off("sticky-note-position-update");
     };
   }, [socket, elements, history]);
 
@@ -72,6 +88,7 @@ const Room = ({ userNo, user, socket, setUsers, setUserNo }) => {
     context.fillStyle = "white";
     context.fillRect(0, 0, canvas.width, canvas.height);
     setElements([]);
+    setStickyNotes([]);
   };
 
   const clearCanvas = () => {
@@ -118,14 +135,43 @@ const Room = ({ userNo, user, socket, setUsers, setUserNo }) => {
     setShapeDropdownVisible(false); // Close the dropdown after selection
   };
 
+  const addStickyNote = () => {
+    const newNote = {
+      id: Date.now(),
+      text: "Double-click to edit",
+      position: { x: 250, y: 150 },
+    };
+    setStickyNotes([...stickyNotes, newNote]);
+    socket.emit("sticky-note-add", newNote);
+  };
+
+  const updateStickyNote = (id, newText) => {
+    setStickyNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id ? { ...note, text: newText } : note
+      )
+    );
+    socket.emit("sticky-note-update", { id, newText });
+  };
+
+  const moveStickyNote = (id, position) => {
+    // Update local state
+    setStickyNotes((prevNotes) =>
+      prevNotes.map((note) => (note.id === id ? { ...note, position } : note))
+    );
+
+    // Emit the updated position to the server
+    socket.emit("sticky-note-move", { id, position });
+  };
+
   // Function to download the canvas as an image
   const downloadCanvas = () => {
     const canvas = canvasRef.current;
     const dataUrl = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.href = dataUrl;
-    link.download = "canvas-drawing.png"; // Set the file name
-    link.click(); // Trigger the download
+    link.download = "canvas-drawing.png";
+    link.click();
   };
 
   return (
@@ -199,6 +245,15 @@ const Room = ({ userNo, user, socket, setUsers, setUserNo }) => {
             <i className="fas fa-slash"></i>
           </button>
 
+          {/* Add Sticky Note */}
+          <button
+            type="button"
+            className="btn btn-outline-dark"
+            onClick={addStickyNote}
+          >
+            <i className="fas fa-sticky-note"></i>
+          </button>
+
           {/* Shape Tool Dropdown */}
           <div className="btn-group" style={{ position: "relative" }}>
             <button
@@ -212,7 +267,7 @@ const Room = ({ userNo, user, socket, setUsers, setUserNo }) => {
                 className="dropdown-menu"
                 style={{
                   position: "absolute",
-                  top: "-100px", // Positioning the dropdown above the button
+                  top: "-100px",
                   left: "0",
                   zIndex: "9999",
                 }}
@@ -263,7 +318,7 @@ const Room = ({ userNo, user, socket, setUsers, setUserNo }) => {
             onCopy={() => toast.success("Room ID Copied to Clipboard!")}
           >
             <button className="btn btn-outline-dark">
-              <i className="fas fa-link"></i> {/* Changed icon */}
+              <i className="fas fa-link"></i>
             </button>
           </CopyToClipboard>
 
@@ -277,6 +332,42 @@ const Room = ({ userNo, user, socket, setUsers, setUserNo }) => {
           </button>
         </div>
       </div>
+      {stickyNotes.map((note) => (
+        <Draggable
+          key={note.id}
+          position={{ x: note.position.x, y: note.position.y }} // Controlled position
+          onStop={(e, data) => {
+            const newPosition = { x: data.x, y: data.y };
+            moveStickyNote(note.id, newPosition); // Update local state
+            socket.emit("sticky-note-move", {
+              id: note.id,
+              position: newPosition,
+            }); // Emit new position
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              background: "#fff",
+              padding: "10px",
+              borderRadius: "5px",
+              width: "150px",
+              cursor: "move",
+              // border: "1px solid #ccc",
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            <div
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => updateStickyNote(note.id, e.target.textContent)}
+            >
+              {note.text}
+            </div>
+          </div>
+        </Draggable>
+      ))}
+
       <div className="row">
         <Canvas
           canvasRef={canvasRef}
